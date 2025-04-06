@@ -1,0 +1,28 @@
+{
+    "tasks": [
+        {
+            "name": "task_1",
+            "command": "python script_1.py",
+            "args": [
+                "--input",
+                "data/file1.csv",
+                "--output",
+                "results/output1.csv"
+            ],
+            "time": "14:00",
+            "status": "pending"
+        },
+        {
+            "name": "task_2",
+            "command": "python script_2.py",
+            "args": [
+                "--input",
+                "data/file2.csv",
+                "--output",
+                "results/output2.csv"
+            ],
+            "time": "18:30",
+            "status": "pending"
+        }
+    ]
+}
