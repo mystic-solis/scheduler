@@ -15,14 +15,14 @@ weekdays_list = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturd
 
 
 # Чтение конфигурационного файла с задачами
-def load_config():
-    with open(CONFIG_PATH, 'r') as f:
+def load_config(path):
+    with open(path, 'r') as f:
         return json.load(f)
 
 
 def change_task_status(task_name, status):
-    task = filter(lambda x: x['name'] == task_name, CONFIG_DATA['tasks'])
-    task['status'] = status
+    task = list(filter(lambda x: x['name'] == task_name, CONFIG_DATA['tasks']))
+    task[0]['status'] = status
 
 
 def update_config():
@@ -34,8 +34,7 @@ def update_config():
 def run_task(command, args, task_name):
     logger.info(f"Запуск {task_name}: {command} {' '.join(args)}")
     result = subprocess.run(command, *args, capture_output=True)
-    logger.info(f"Задача {task_name} вернула код {result.returncode}")
-    logger.info(f"stdout: {result.stdout.decode()}\nstderr: {result.stderr.decode()}")
+    logger.info(f"stdout: {result.stdout.decode()} | stderr: {result.stderr.decode()}")
 
 
 def setup_logger(folder:str='logs', log_name:str='scheduler.log'):
@@ -57,16 +56,16 @@ def init_tasks(config):
         
         if not days: # Если дни не указаны - ежедневно
             schedule.every().day.at(task_time).do(run_task, command, args, task_name)
-            change_task_status(config, task_name, 'running')
+            change_task_status(task_name, 'running')
             continue
         
         for day_num in days:
             # Получаем название дня недели для schedule
             weekday = weekdays_list[day_num]
-            getattr(schedule.every(), weekday).at(task_time.strftime('%H:%M')).do(
+            getattr(schedule.every(), weekday).at(task_time).do(
                 run_task, command, args, task_name
             )
-            change_task_status(config, task_name, 'running')
+            change_task_status(task_name, 'running')
     update_config()
 
 
@@ -86,6 +85,7 @@ def main(config, log):
     
     # TODO сделать проверку на уникальности имени
     # TODO добавить класс для удобства
+    # TODO сделать запуск каждое какое то время
     
     # TODO Добавить статусы к заданиям (запущен, выполнен, ошибка)
     # TODO Добавить обновление конфига каждые несколько секунд
@@ -94,7 +94,7 @@ def main(config, log):
     
     while True:
         schedule.run_pending()
-        time.sleep(30)
+        time.sleep(5)
 
 if __name__ == '__main__':
     main()
