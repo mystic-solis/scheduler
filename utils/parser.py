@@ -36,7 +36,7 @@ def parse_datetime(time_str: str) -> Tuple[Union[List[int], None], str]:
     parts = re.split(r'\s+', time_str.strip(), maxsplit=1)
     if len(parts) == 1:
         # Только время (например "10:00")
-        return None, _parse_time(parts[0])
+        return [], _parse_time(parts[0])
     
     days_part, time_part = parts
     time_obj = _parse_time(time_part)
@@ -103,6 +103,6 @@ if __name__ == "__main__":
     # Примеры использования
     assert parse_datetime("monday-friday 14:00") == (['monday', 'tuesday', 'wednesday', 'thursday', 'friday'], '14:00')
     assert parse_datetime("0-5 14:00") == (['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'], '14:00')
-    assert parse_datetime("10:00") == (None, '10:00')
+    assert parse_datetime("10:00") == ([], '10:00')
     assert parse_datetime("monday,wednesday,friday 09:00") == (['monday', 'wednesday', 'friday'], '09:00')
     assert parse_datetime("1,3,5 15:30") == (['tuesday', 'thursday', 'saturday'], '15:30')

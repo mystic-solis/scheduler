@@ -1,0 +1,13 @@
+{
+    "tasks": [
+        {
+            "name": "print1",
+            "command": "python hello.py",
+            "args": [
+                "--m",
+                "hello"
+            ],
+            "time": "00:12"
+        }
+    ]
+}
