@@ -15,9 +15,9 @@ from utils.validators import check_names_unique
 CONFIG_TEMPLATE = {'tasks': []}
 
 # TODO сделать запуск каждое какое то время (рекуррентные задачи)
-# TODO Добавить статусы к заданиям (запущен, выполнен, ошибка). Реализовать их смену.
+# TODO Добавить статусы к заданиям (ожидание, выполнена, запущена, ошибка). Реализовать их смену.
 # TODO Добавить возможность проброса переменных окружения
-# TODO Добавить статусы таскам, (сделана, ожидание, выполнена, запущена)
+
 # TODO Проверить что будет если таска будет не разовая, а напрмиер все ресурсы хавать не повиснет ли весь скедулер на этой таске
 
 class Chrono:
@@ -70,8 +70,10 @@ class Chrono:
 
 
     def change_task_status(self, tasks, task_name, status):
-        task = list(filter(lambda x: x['name'] == task_name, tasks))
-        task[0]['status'] = status
+        for task in tasks:
+            if task['name'] == task_name:
+                task['status'] = status
+                break
         self.update_config()
 
 
@@ -82,17 +84,26 @@ class Chrono:
 
 
     def run_task(self, command, args, task_name):
-        """Функция для выполнения команды"""
-        full_command = list(map(str, command.split() + args))
-        
-        logger.info(f"Запуск {task_name} с параметрами {full_command}")
-        result = subprocess.run(full_command, capture_output=True)
-        
-        if result.stdout.decode():
-            logger.info(f"{task_name} - Результат: {result.stdout.decode()}")
-        if result.stderr.decode():
-            logger.error(f'{task_name} - Ошибка: {result.stderr.decode()}')
-            self.change_task_status(self.config_data['tasks'], task_name, f'Error: {result.stderr.decode()}')
+        """Обертка для запуска асинхронной задачи"""
+        asyncio.create_task(self.run_task_async(command, args, task_name))
+
+    
+    async def run_task_async(self, command, args, task_name):
+        """Асинхронный запуск задачи"""
+        full = list(map(str, command.split() + args))
+        logger.info(f"[ASYNC] запуск {task_name}: {full}")
+        # создаём асинхронный процесс
+        proc = await asyncio.create_subprocess_exec(
+            *full,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        out, err = await proc.communicate()
+        if out:
+            logger.info(f"{task_name} → {out.decode().strip()}")
+        if err:
+            logger.error(f"{task_name} Ошибка → {err.decode().strip()}")
+            self.change_task_status(self.config_data['tasks'], task_name, f"Error: {err.decode().strip()}")
 
 
     def init_tasks(self):
