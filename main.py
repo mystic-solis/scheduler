@@ -2,9 +2,7 @@ import asyncio
 from loguru import logger
 import click
 import json
-import time
 import os
-import subprocess
 import schedule
 from watchfiles import awatch
 

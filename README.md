@@ -2,8 +2,14 @@
 
 ## Запуск
 ```sh
-python scheduler.py --config путь/до/конфига --log папка/для/логов
+uv run scheduler.py --config config.json
 ```
+
+```sh
+uv pip install --editable .  # Установка скрипта
+```
+
+
 
 > !!! Проект можно использовать как стороннюю библиотеку
 
