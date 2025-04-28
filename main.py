@@ -1,4 +1,5 @@
 import asyncio
+from asyncio import subprocess
 from loguru import logger
 import click
 import json
@@ -80,8 +81,20 @@ class Chrono:
 
     def run_task(self, command, args, task_name):
         """Обертка для запуска асинхронной задачи"""
+        # TODO сделать возможность запуска задачи не асинхронно
         asyncio.create_task(self.run_task_async(command, args, task_name))
 
+    def run_task_non_async(self, command, args, task_name):
+        full_command = list(map(str, command.split() + args))
+        
+        logger.info(f"Запуск {task_name} с параметрами {full_command}")
+        result = subprocess.run(full_command, capture_output=True)
+        
+        if result.stdout.decode():
+            logger.info(f"{task_name} - Результат: {result.stdout.decode()}")
+        if result.stderr.decode():
+            logger.error(f'{task_name} - Ошибка: {result.stderr.decode()}')
+            self.change_task_status(self.config_data['tasks'], task_name, f'Error: {result.stderr.decode()}')
     
     async def run_task_async(self, command, args, task_name):
         """Асинхронный запуск задачи"""
@@ -140,6 +153,15 @@ class Chrono:
         
         while True:
             try:
+                # Добавить обновление конфига
+                conf_tmp = self.config_data
+                self.config_data = self.load_config()
+                
+                if self.config_data != conf_tmp:
+                    logger.info(f'Конфиг обновлен: {self.config_data}')
+                    schedule.clear()
+                    self.init_tasks()
+                
                 await self.step(sleep_sec=1)
             except Exception as e:
                 logger.error(f'Ошибка: {e}')
