@@ -151,6 +151,9 @@ class Chrono:
         # стартуем watcher, он сам вызовет init_tasks() по изменению
         asyncio.create_task(self.watch_config())
         
+        schedule.clear()
+        self.init_tasks()
+        
         while True:
             try:
                 # Добавить обновление конфига
