@@ -151,6 +151,7 @@ class Chrono:
         # стартуем watcher, он сам вызовет init_tasks() по изменению
         asyncio.create_task(self.watch_config())
         
+        logger.info(f'Первичный конфиг загружен: {self.config_data}')
         schedule.clear()
         self.init_tasks()
         
